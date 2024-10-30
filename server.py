@@ -6,8 +6,7 @@ import queue
 type=socket.SOCK_DGRAM
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-
-server_ip = socket.gethostbyname(socket.gethostname())
+server_ip = str(input("Masukkan Server IP: "))
 port = int(input("Masukkan Server Port: "))
 
 server.bind((server_ip, port))
@@ -23,24 +22,28 @@ class Chatroom:
         self.chatParticipants = chatParticipants
 invalidmessage = "Input yang diberikan Tidak Valid."
 
-def Receive(sock):
+datas = queue.Queue()
+
+def Receive():
     while True:
         try:
-            data,addr = sock.recvfrom(1024)
-            data.put = ((data, addr))
+            data, addr = server.recvfrom(1024)
+            datas.put((data, addr))
         except:
             pass
 
 def ClientReceive():
     while True:
-        while not data.empty():
-            data, addr = data.get()
+        while not datas.empty():
+            data, addr = datas.get()
             decodedata = data.decode()
             client = addr
 
+            print(decodedata)
+
             decodedata = decodedata.split(",")
             command = decodedata[0]
-            information = decodedata[1]
+            information = decodedata[:1]
 
             if command == decodedata:
                 match command:
@@ -78,7 +81,7 @@ def register(client, information):
     else:
         username.append(reguser)
         password.append(regpass)
-        server.sendto(f"{reguser} berhasil didaftarkan.".encode() client)
+        server.sendto(f"{reguser} berhasil didaftarkan.".encode(), client)
 
 def create(client, information):
     information = information.split
@@ -90,3 +93,11 @@ def create(client, information):
     else:
         chatroom.append(Chatroom(chatname, chatpassword, []))
         server.sendto(f'Chatroom {chatname} berhasil dibuat'.encode(), client)
+
+clients = set()
+
+receive_thread = threading.Thread(target=Receive)
+receive_thread.start()
+
+sending_thread = threading.Thread(target=ClientReceive)
+sending_thread.start()
