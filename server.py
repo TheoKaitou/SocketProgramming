@@ -8,7 +8,7 @@ server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 server_ip = socket.gethostbyname(socket.gethostname())
 port = int(input("Masukkan Server Port: "))
-
+print(server_ip)
 server.bind((server_ip, port))
 serveraddress =  (server_ip, port)
 
@@ -40,11 +40,11 @@ def ClientReceive():
             decodedata = data.decode()
             client = addr
 
-            print(decodedata)
-
             decodedata = decodedata.split(";")
             command = decodedata[0]
             information = decodedata[:1]
+
+            print(f"{client} : {decodedata[1]}")
 
             if command == decodedata:
                 match command:

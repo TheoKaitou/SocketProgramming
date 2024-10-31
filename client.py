@@ -1,6 +1,7 @@
 import socket
 import threading
 import sys
+import queue
 
 # Set up UDP socket
 
@@ -14,12 +15,15 @@ isinroom = False
 roomlist = []
 temproom = str
 
+datas = queue.Queue()
+
 def receive_messages():
     while True:
         try:
             # Menerima pesan dari server
             message, _ = server.recvfrom(1024)
             decodedmessage = message.decoded()
+            print(f"Dia : {decodedmessage}")
             information = decodedmessage.split(";")
             if information[0] == 1:
                 registerresponse(information)
@@ -47,7 +51,7 @@ def send_messages():
                 if message.lower() == 'exit':
                     print("Keluar dari chat room.")
                     sys.exit()
-                server.sendto(message.encode(), (server_ip, port))
+                server.sendto(f"6;{message}".encode(), (server_ip, port))
         finally:
             server.close()
 
@@ -138,9 +142,6 @@ def leaveresponse(information):
             global isinroom
             isinroom = False
 
-def sendchat():
-    message = (str(input("Masukkan pesan anda: ")))
-    server.sendto(f"6;{message}".encode(), (server_ip, port))
 
 
 receive_thread = threading.Thread(target=receive_messages)
