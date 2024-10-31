@@ -6,7 +6,7 @@ import queue
 type=socket.SOCK_DGRAM
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-server_ip = str(input("Masukkan Server IP: "))
+server_ip = socket.gethostbyname(socket.gethostname())
 port = int(input("Masukkan Server Port: "))
 
 server.bind((server_ip, port))
@@ -15,6 +15,7 @@ serveraddress =  (server_ip, port)
 username = []
 password = []
 chatroom = []
+activeuser = []
 class Chatroom:
     def __init__(self, chatName, chatPass, chatParticipants):
         self.chatName = chatName
@@ -41,7 +42,7 @@ def ClientReceive():
 
             print(decodedata)
 
-            decodedata = decodedata.split(",")
+            decodedata = decodedata.split(";")
             command = decodedata[0]
             information = decodedata[:1]
 
@@ -50,7 +51,17 @@ def ClientReceive():
                     case "1":
                         register(client, information)
                     case "2":
-                          server.sendto(invalidmessage, client)
+                        login(client, information)
+                    case "3":
+                        create(client, information)
+                    case "4":
+                        join(client, information)
+                    case "5":
+                        logout(client, information)
+                    case "6":
+                        leave(client, information)
+                    case "7":
+                        sendchat(client, information)
             else:
                  server.sendto(invalidmessage.encode(), client)
 
@@ -68,31 +79,85 @@ def login(client, information):
             logged_in = True
 
     if logged_in:
-        server.sendto('Berhasil Login'.encode(), client)
+        server.sendto("2!1!Berhasil Login".encode(), client)
+        activeuser.append(log_user)
     else: 
-       server.sendto('username atau password salah!'.encode(), client)
+       server.sendto("2;0;username atau password salah!".encode(), client)
 
 def register(client, information):
-    information = information.split(";")
+    information = information.split(",")
     reguser = information[0]
     regpass = information[1]
     if reguser in username:
-        server.sendto("Username telah terdaftar, Silahkan masukkan username lain.".encode(), client)
+        server.sendto("2;1;Username telah terdaftar, Silahkan masukkan username lain.".encode(), client)
     else:
         username.append(reguser)
         password.append(regpass)
         server.sendto(f"{reguser} berhasil didaftarkan.".encode(), client)
+
+def logout(client, information):
+    information = information.split(";")
+    logoutuser = information[1]
+    if logoutuser in activeuser:
+        server.sendto("5;1;Berhasil Keluar dari aplikasi RUDAL_CHAT".encode(), client)
+        activeuser.remove(logoutuser)
+        for Chatroom in chatroom:
+            if logoutuser in Chatroom.chatParticipant:
+                Chatroom.chatParticipants.remove(client)
+    else:
+        server.sendto("5;0;Anda tidak pernah melakukan login.")
 
 def create(client, information):
     information = information.split
     chatname = information[0]
     chatpassword = information[1]
 
-    if chatname in chatroom:
-        server.sendto(invalidmessage.encode(), client)
-    else:
-        chatroom.append(Chatroom(chatname, chatpassword, []))
-        server.sendto(f'Chatroom {chatname} berhasil dibuat'.encode(), client)
+    global chatroom
+    for Chatroom in chatroom:
+        if chatroom.chatname == chatname:
+            server.sendto(invalidmessage.encode(), client)
+        else:
+            chatroom.append(Chatroom(chatname, chatpassword, []))
+            server.sendto(f"3;1;Chatroom {chatname} berhasil dibuat".encode(), client)
+
+def join(client, information):
+    information = information.split
+    chatname = information[0]
+    chatpassword = information[1]
+
+    global chatroom
+    for Chatroom in chatroom:
+        if Chatroom.chatName == chatname:
+            if Chatroom.chatPass == chatpassword:
+                Chatroom.chatParticipants.append(client)
+                server.sendto(f"4;1;Selamat anda telah bergabung di groupchat {chatname}".encode(), client)
+            else:
+                server.sendto("4;0;Password Salah Silahkan lakukan lagi!".encode(), client)
+        else:
+            server.sendto("4;0;Chatroom tidak ditemukan".encode(), client)
+
+def leave(client, information):
+    information = information.split
+    chatname = information[1]
+
+    for Chatroom in chatroom:
+        if Chatroom.chatName == chatname:
+            Chatroom.chatParticipants.remove(client)
+            server.sendto(f"6;1;Anda berhasil keluar dari groupchat {chatname}".encode(), client)
+        else:
+            server.sendto("6;0;Anda tidak bergabung dalam chatroom!".encode(), client())
+
+def sendchat(client, information):
+
+    message = information.split(",")[1]
+    clientUsername = information.split(",")[2]
+    chatname = information.split(",")[3]
+    global chatrooms
+    for chatroom in chatrooms:
+        if chatroom.chatName == chatname:
+            for participant in chatroom.chatParticipants:
+                server.sendto({message},{clientUsername},{chatname}.encode(), participant)
+
 
 clients = set()
 
