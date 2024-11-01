@@ -1,6 +1,5 @@
 import socket
 import threading
-import sys
 import queue
 
 # Set up UDP socket
@@ -49,9 +48,6 @@ def send_messages():
                 # Kirim pesan ke server
                 message = input("Kamu: ")
                 kirim = message
-                if message.lower() == 'exit':
-                    print("Keluar dari chat room.")
-                    sys.exit()
                 server.sendto(f"{kirim}".encode(), (server_ip, port))
         finally:
             server.close()
