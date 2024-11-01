@@ -6,11 +6,11 @@ import queue
 type=socket.SOCK_DGRAM
 server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-server_ip = socket.gethostbyname(socket.gethostname())
+server_ip = str(input("Masukkan Server IP: "))
 port = int(input("Masukkan Server Port: "))
-print(server_ip)
 server.bind((server_ip, port))
 serveraddress =  (server_ip, port)
+print(serveraddress)
 
 username = []
 password = []
