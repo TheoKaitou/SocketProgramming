@@ -31,7 +31,7 @@ def receive_messages():
             data, addr = datas.get()
             decodedata = data.decode()
 
-            print(f"{decodedata[0]} : {decodedata[1]}", end="\n")
+            print(f"{decodedata}", end="\n")
 
 def send_messages():
     benar = False
