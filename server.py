@@ -16,13 +16,14 @@ username = []
 password = []
 chatroom = []
 activeuser = []
+status = []
 class Chatroom:
     def __init__(self, chatName, chatPass, chatParticipants):
         self.chatName = chatName
         self.chatPass = chatPass
         self.chatParticipants = chatParticipants
 invalidmessage = "Input yang diberikan Tidak Valid."
-
+password = 'hitam'
 datas = queue.Queue()
 
 def Receive():
@@ -33,39 +34,27 @@ def Receive():
         except:
             pass
 
-def ClientReceive():
+
+def ClientReceive():    
     while True:
         while not datas.empty():
             data, addr = datas.get()
             decodedata = data.decode()
-            client = addr
 
-            decodedata = decodedata.split(";")
-            command = decodedata[0]
-            information = decodedata[:1]
+            print(f"{addr} : {decodedata}")
 
-            print(f"{client} : {decodedata[1]}")
+            cek = False
 
-            if command == decodedata:
-                match command:
-                    case "1":
-                        register(client, information)
-                    case "2":
-                        login(client, information)
-                    case "3":
-                        create(client, information)
-                    case "4":
-                        join(client, information)
-                    case "5":
-                        logout(client, information)
-                    case "6":
-                        leave(client, information)
-                    case "7":
-                        sendchat(client, information)
-            else:
-                 server.sendto(invalidmessage.encode(), client)
+            for i in range (len(activeuser)) :
+                if activeuser[i] == addr :
+                    cek = True
 
+            if cek == False :
+                activeuser.append(addr)
 
+            for i in range (len(activeuser)) :
+                if activeuser[i] != addr and (len(activeuser)) > 1:
+                    server.sendto(f"{decodedata}".encode(), (activeuser[i]))
 
 def login(client, information):
     information = information.split(";")
@@ -161,8 +150,8 @@ def sendchat(client, information):
 
 clients = set()
 
-receive_thread = threading.Thread(target=Receive)
-receive_thread.start()
+receive = threading.Thread(target=Receive)
+receive.start()
 
-sending_thread = threading.Thread(target=ClientReceive)
-sending_thread.start()
+receive_thread = threading.Thread(target=ClientReceive)
+receive_thread.start()

@@ -17,41 +17,42 @@ temproom = str
 
 datas = queue.Queue()
 
-def receive_messages():
+def Receive():
     while True:
         try:
-            # Menerima pesan dari server
-            message, _ = server.recvfrom(1024)
-            decodedmessage = message.decoded()
-            print(f"Dia : {decodedmessage}")
-            information = decodedmessage.split(";")
-            if information[0] == 1:
-                registerresponse(information)
-            elif information[0] == 2:
-                loginresponse(information)
-            elif information[0] == 3:
-                createchatresponse(information)
-            elif information[0] == 4:
-                joinresponse(information)
-            elif information[0] == 5:
-                logoutresponse(information)
-            elif information[0] == 6:
-                leaveresponse(information)
-            else:
-                print(information[2].decode())
+            data, addr = server.recvfrom(1024)
+            datas.put((data, addr))
         except:
             pass
 
+def receive_messages():
+    while True:
+        while not datas.empty():
+            data, addr = datas.get()
+            decodedata = data.decode()
+
+            print(f"{decodedata[0]} : {decodedata[1]}", end="\n")
+
 def send_messages():
+    benar = False
+    while not benar :
+        password = input("Password Chatroom: ")
+        if password == "hitam" :
+            benar = True
+        else :
+            print("Password Salah")
+    user =  input("Masukan Username: ")
+
     while True:
         try:
             while True:
                 # Kirim pesan ke server
                 message = input("Kamu: ")
+                kirim = message
                 if message.lower() == 'exit':
                     print("Keluar dari chat room.")
                     sys.exit()
-                server.sendto(f"6;{message}".encode(), (server_ip, port))
+                server.sendto(f"{kirim}".encode(), (server_ip, port))
         finally:
             server.close()
 
@@ -143,6 +144,8 @@ def leaveresponse(information):
             isinroom = False
 
 
+receive = threading.Thread(target=Receive)
+receive.start()
 
 receive_thread = threading.Thread(target=receive_messages)
 receive_thread.start()
